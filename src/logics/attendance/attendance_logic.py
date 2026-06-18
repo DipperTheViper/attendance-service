@@ -1,7 +1,8 @@
-from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
-from archipy.models.errors import InvalidArgumentError
 from datetime import datetime, timezone
 
+from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
+
+from src.logics.notification.notification_logic import NotificationLogic
 from src.models.dtos.attendance.domain.v1.attendance_domain_interface_dtos import (
     CheckInInputDTOV1,
     CheckOutInputDTOV1,
@@ -29,8 +30,9 @@ from src.utils.utils import Utils
 
 
 class AttendanceLogic:
-    def __init__(self, repository: AttendanceRepository) -> None:
+    def __init__(self, repository: AttendanceRepository, notification_logic: NotificationLogic) -> None:
         self._repository: AttendanceRepository = repository
+        self._notification_logic: NotificationLogic = notification_logic
 
     @async_postgres_sqlalchemy_atomic_decorator
     async def check_in(self, input_dto: CheckInInputDTOV1) -> None:
@@ -46,6 +48,7 @@ class AttendanceLogic:
             method=AttendanceMethodType.MANUAL,
         )
         await self._repository.create_attendance_record(input_dto=command)
+        await self._notification_logic.send_welcome_sms(user_uuid=input_dto.user_uuid)
 
     @async_postgres_sqlalchemy_atomic_decorator
     async def check_out(self, input_dto: CheckOutInputDTOV1) -> None:
@@ -81,6 +84,7 @@ class AttendanceLogic:
             location=Utils.make_point_wkt(input_dto.latitude, input_dto.longitude),
         )
         await self._repository.create_attendance_record(input_dto=command)
+        await self._notification_logic.send_welcome_sms(user_uuid=input_dto.user_uuid)
 
     @async_postgres_sqlalchemy_atomic_decorator
     async def geo_check_out(self, input_dto: GeoCheckOutInputDTOV1) -> None:
@@ -119,6 +123,7 @@ class AttendanceLogic:
                     location=Utils.make_point_wkt(input_dto.latitude, input_dto.longitude),
                 ),
             )
+            await self._notification_logic.send_welcome_sms(user_uuid=input_dto.user_uuid)
         else:
             open_record = await self._repository.get_open_attendance(
                 input_dto=GetOpenAttendanceQueryDTO(user_uuid=input_dto.user_uuid, method=AttendanceMethodType.GEO),

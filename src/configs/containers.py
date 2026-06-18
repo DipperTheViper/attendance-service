@@ -5,6 +5,7 @@ from dependency_injector import containers, providers
 from src.configs.runtime_config import RuntimeConfig
 from src.logics.attendance.attendance_logic import AttendanceLogic
 from src.logics.auth.auth_logic import AuthLogic
+from src.logics.notification.notification_logic import NotificationLogic
 from src.logics.user.user_logic import UserLogic
 from src.repositories.attendance.adapters.attendance_postgres_adapter import AttendancePostgresAdapter
 from src.repositories.attendance.attendance_repository import AttendanceRepository
@@ -36,6 +37,13 @@ class ServiceContainer(containers.DeclarativeContainer):
     )
     # endregion
 
+    # region notification
+    notification_logic = providers.ThreadSafeSingleton(
+        NotificationLogic,
+        user_logic=user_logic,
+    )
+    # endregion
+
     # region attendance
     _attendance_postgres_adapter = providers.ThreadSafeSingleton(
         AttendancePostgresAdapter,
@@ -48,6 +56,7 @@ class ServiceContainer(containers.DeclarativeContainer):
     attendance_logic = providers.ThreadSafeSingleton(
         AttendanceLogic,
         repository=_attendance_repository,
+        notification_logic=notification_logic,
     )
     # endregion
 
