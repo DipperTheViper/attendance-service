@@ -1,6 +1,13 @@
 # Backend
 backend service
 
+
+api flow tests:
+###
+```shell
+uv run behave
+```
+
 ___
 ## run db migrations
 

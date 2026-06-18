@@ -30,6 +30,7 @@ class GetUserOutputDTOV1(BaseDTO):
     phone_number: StrictStr
     first_name: StrictStr | None = None
     last_name: StrictStr | None = None
+    user_type: UserType
 
 
 class GetUserByUsernameInputDTOV1(BaseDTO):

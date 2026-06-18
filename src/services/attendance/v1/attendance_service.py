@@ -16,6 +16,7 @@ from src.models.dtos.attendance.domain.v1.attendance_domain_interface_dtos impor
     GeoCheckInInputRestDTOV1,
     GeoAttendanceInputRestDTOV1,
     GeoAttendanceInputDTOV1,
+    DeleteAttendanceInputDTOV1,
 )
 from src.models.types.api_router_type import ApiRouterType
 
