@@ -14,6 +14,8 @@ from src.models.dtos.attendance.domain.v1.attendance_domain_interface_dtos impor
     SearchAttendanceOutputDTOV1,
     GeoCheckOutInputRestDTOV1,
     GeoCheckInInputRestDTOV1,
+    GeoAttendanceInputRestDTOV1,
+    GeoAttendanceInputDTOV1,
 )
 from src.models.types.api_router_type import ApiRouterType
 
@@ -58,6 +60,17 @@ async def geo_check_out(
 ) -> None:
     input_dto = GeoCheckOutInputDTOV1.create(user_uuid=user_uuid, input_dto=input_dto)
     await logic.geo_check_out(input_dto=input_dto)
+
+
+@routerV1.post(path="/{user_uuid}/attendance/geo")
+@inject
+async def geo_attendance(
+    user_uuid: UUID,
+    input_dto: GeoAttendanceInputRestDTOV1,
+    logic: AttendanceLogic = Depends(Provide[ServiceContainer.attendance_logic]),
+) -> None:
+    input_dto = GeoAttendanceInputDTOV1.create(user_uuid=user_uuid, input_dto=input_dto)
+    await logic.geo_attendance(input_dto=input_dto)
 
 
 @routerV1.get(

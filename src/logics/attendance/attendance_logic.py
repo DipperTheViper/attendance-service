@@ -9,6 +9,7 @@ from src.models.dtos.attendance.domain.v1.attendance_domain_interface_dtos impor
     GeoCheckOutInputDTOV1,
     SearchAttendanceInputDTOV1,
     SearchAttendanceOutputDTOV1,
+    GeoAttendanceInputDTOV1,
 )
 from src.models.dtos.attendance.repository.attendance_repository_interface_dtos import (
     CheckOutCommandDTO,
@@ -99,6 +100,37 @@ class AttendanceLogic:
                 check_out_at=datetime.now(timezone.utc),
             ),
         )
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def geo_attendance(self, input_dto: GeoAttendanceInputDTOV1) -> None:
+        within = await self._repository.is_within_geofence(latitude=input_dto.latitude, longitude=input_dto.longitude)
+
+        if within:
+            open_record = await self._repository.get_open_attendance(
+                input_dto=GetOpenAttendanceQueryDTO(user_uuid=input_dto.user_uuid, method=AttendanceMethodType.GEO),
+            )
+            if open_record:
+                raise AlreadyCheckedInError()
+            await self._repository.create_attendance_record(
+                input_dto=CreateAttendanceRecordCommandDTO(
+                    user_uuid=input_dto.user_uuid,
+                    check_in_at=datetime.now(timezone.utc),
+                    method=AttendanceMethodType.GEO,
+                    location=Utils.make_point_wkt(input_dto.latitude, input_dto.longitude),
+                ),
+            )
+        else:
+            open_record = await self._repository.get_open_attendance(
+                input_dto=GetOpenAttendanceQueryDTO(user_uuid=input_dto.user_uuid, method=AttendanceMethodType.GEO),
+            )
+            if not open_record:
+                raise NoActiveCheckInError()
+            await self._repository.check_out(
+                input_dto=CheckOutCommandDTO(
+                    attendance_uuid=open_record.attendance_uuid,
+                    check_out_at=datetime.now(timezone.utc),
+                ),
+            )
 
     @async_postgres_sqlalchemy_atomic_decorator
     async def search_attendance_records(self, input_dto: SearchAttendanceInputDTOV1) -> SearchAttendanceOutputDTOV1:

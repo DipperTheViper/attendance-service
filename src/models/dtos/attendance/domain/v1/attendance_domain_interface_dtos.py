@@ -56,6 +56,25 @@ class GeoCheckOutInputDTOV1(GeoCheckOutInputRestDTOV1):
         return cls(user_uuid=user_uuid)
 
 
+class GeoAttendanceInputRestDTOV1(BaseDTO):
+    latitude: float
+    longitude: float
+
+
+class GeoAttendanceInputDTOV1(GeoAttendanceInputRestDTOV1):
+    user_uuid: UUID
+
+    @classmethod
+    def create(
+        cls,
+        user_uuid: UUID | None = None,
+        input_dto: GeoAttendanceInputRestDTOV1 = None,
+    ):
+        if input_dto:
+            return cls(user_uuid=user_uuid, **input_dto.model_dump(mode="json"))
+        return cls(user_uuid=user_uuid)
+
+
 class AttendanceOutputDTOV1(BaseDTO):
     attendance_uuid: UUID
     user_uuid: UUID
