@@ -1,9 +1,7 @@
-from uuid import UUID
-
 from archipy.models.errors import NotFoundError
-from archipy.models.types import SortOrderType
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, Query
+from uuid import UUID
 
 from src.configs.containers import ServiceContainer
 from src.logics.user.user_logic import UserLogic
@@ -40,16 +38,13 @@ async def create_user(
 
 
 @routerV1.get(
-    path="/{user_uuid}",
+    path="/{user_uuid}/users/{user_uuid}",
     response_model=GetUserOutputDTOV1,
-    responses=Utils.get_fastapi_exception_responses(
-        [
-            NotFoundError,
-        ],
-    ),
+    responses=Utils.get_fastapi_exception_responses([NotFoundError]),
 )
 @inject
 async def get_user(
+    user_uuid: UUID,
     user_uuid: UUID,
     logic: UserLogic = Depends(Provide[ServiceContainer.user_logic]),
 ) -> GetUserOutputDTOV1:
@@ -76,15 +71,11 @@ async def search_users(
 
 
 @routerV1.put(
-    path="/{user_uuid}",
-    responses=Utils.get_fastapi_exception_responses(
-        [
-            NotFoundError,
-        ],
-    ),
+    path="/{user_uuid}/users/{user_uuid}",
 )
 @inject
 async def update_user(
+    user_uuid: UUID,
     user_uuid: UUID,
     input_dto: UpdateUserRestInputDTOV1,
     logic: UserLogic = Depends(Provide[ServiceContainer.user_logic]),
@@ -94,10 +85,11 @@ async def update_user(
 
 
 @routerV1.delete(
-    path="/users/{user_uuid}",
+    path="/{user_uuid}/users/{user_uuid}",
 )
 @inject
 async def delete_user(
+    user_uuid: UUID,
     user_uuid: UUID,
     logic: UserLogic = Depends(Provide[ServiceContainer.user_logic]),
 ) -> None:

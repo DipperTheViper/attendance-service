@@ -1,17 +1,10 @@
-from src.models.entities.admin import AppConfigEntity
+from src.models.entities.attendance import AttendanceRecordEntity
 from src.models.entities.user import UserEntity
-from src.models.types.enums import (
-    GenderType,
-    UserType,
-    UserStatusType,
-    KYCLevelType,
-)
+from src.models.types.enums import AttendanceMethodType, UserType
 
 __all__ = [
+    "AttendanceRecordEntity",
     "UserEntity",
-    "AppConfigEntity",
-    "GenderType",
     "UserType",
-    "UserStatusType",
-    "KYCLevelType",
+    "AttendanceMethodType",
 ]

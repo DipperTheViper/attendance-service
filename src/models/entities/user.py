@@ -1,11 +1,11 @@
 import uuid
-from datetime import date
-from typing import Optional
 
 from archipy.models.entities import UpdatableDeletableEntity
-from sqlalchemy import Column, Date, Integer
+from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import UUID, VARCHAR
 from sqlalchemy.orm import Mapped, mapped_column, relationship, Synonym
+from sqlalchemy import Enum as SAEnum
+from src.models.types.enums import UserType
 
 
 class UserEntity(UpdatableDeletableEntity):
@@ -14,19 +14,11 @@ class UserEntity(UpdatableDeletableEntity):
     user_uuid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     pk_uuid = Synonym("user_uuid")
 
-    # Basic Information
+    username: Mapped[str] = mapped_column(VARCHAR(500), nullable=False, unique=True)
+    hashed_password: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    phone_number: Mapped[str] = mapped_column(VARCHAR(15), nullable=False, unique=True)
     first_name: Mapped[str] = mapped_column(VARCHAR(100), nullable=True)
     last_name: Mapped[str] = mapped_column(VARCHAR(100), nullable=True)
-    phone_number: Mapped[str] = mapped_column(VARCHAR(15), nullable=False, unique=True)
+    user_type: Mapped[str] = mapped_column(SAEnum(UserType), nullable=False, default=UserType.USER)
 
-    # Profile Information
-    username: Mapped[Optional[str]] = mapped_column(VARCHAR(50), nullable=True)
-    hashed_password: Mapped[Optional[str]] = mapped_column(VARCHAR(255), nullable=True)
-    profile_picture_path: Mapped[Optional[str]] = mapped_column(VARCHAR(500), nullable=True)
-    # Enums
-    user_type: Mapped[str] = mapped_column(VARCHAR(20), nullable=False, default="USER")
-    user_status: Mapped[str] = mapped_column(VARCHAR(20), nullable=False, default="ACTIVE")
-    gender_type: Mapped[Optional[str]] = mapped_column(VARCHAR(30), nullable=True)
-
-    created_files = relationship("FileEntity", foreign_keys="[FileEntity.created_by]")
-    updated_files = relationship("FileEntity", foreign_keys="[FileEntity.updated_by]")
+    attendance_records = relationship("AttendanceRecordEntity", back_populates="user")

@@ -3,11 +3,11 @@ from archipy.adapters.redis.adapters import AsyncRedisAdapter
 from dependency_injector import containers, providers
 
 from src.configs.runtime_config import RuntimeConfig
-from src.logics.admin.admin_logic import AdminLogic
+from src.logics.attendance.attendance_logic import AttendanceLogic
 from src.logics.auth.auth_logic import AuthLogic
 from src.logics.user.user_logic import UserLogic
-from src.repositories.admin.adapters.admin_postgres_adapter import AdminPostgresAdapter
-from src.repositories.admin.admin_repository import AdminRepository
+from src.repositories.attendance.adapters.attendance_postgres_adapter import AttendancePostgresAdapter
+from src.repositories.attendance.attendance_repository import AttendanceRepository
 from src.repositories.auth.adapters.auth_redis_adapter import AuthRedisAdapter
 from src.repositories.auth.auth_repository import AuthRepository
 from src.repositories.user.adapters.user_postgres_adapter import UserPostgresAdapter
@@ -30,7 +30,25 @@ class ServiceContainer(containers.DeclarativeContainer):
         UserRepository,
         postgres_adapter=_user_postgres_adapter,
     )
-    user_logic = providers.ThreadSafeSingleton(UserLogic, repository=_user_repository)
+    user_logic = providers.ThreadSafeSingleton(
+        UserLogic,
+        repository=_user_repository,
+    )
+    # endregion
+
+    # region attendance
+    _attendance_postgres_adapter = providers.ThreadSafeSingleton(
+        AttendancePostgresAdapter,
+        adapter=_postgres_adapter,
+    )
+    _attendance_repository = providers.ThreadSafeSingleton(
+        AttendanceRepository,
+        postgres_adapter=_attendance_postgres_adapter,
+    )
+    attendance_logic = providers.ThreadSafeSingleton(
+        AttendanceLogic,
+        repository=_attendance_repository,
+    )
     # endregion
 
     # region auth
@@ -46,20 +64,5 @@ class ServiceContainer(containers.DeclarativeContainer):
         AuthLogic,
         repository=_auth_repository,
         user_logic=user_logic,
-    )
-    # endregion
-
-    # region admin
-    _admin_postgres_adapter = providers.ThreadSafeSingleton(
-        AdminPostgresAdapter,
-        adapter=_postgres_adapter,
-    )
-    _admin_repository = providers.ThreadSafeSingleton(
-        AdminRepository,
-        postgres_adapter=_admin_postgres_adapter,
-    )
-    admin_logic = providers.ThreadSafeSingleton(
-        AdminLogic,
-        repository=_admin_repository,
     )
     # endregion
