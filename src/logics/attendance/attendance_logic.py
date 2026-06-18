@@ -11,6 +11,7 @@ from src.models.dtos.attendance.domain.v1.attendance_domain_interface_dtos impor
     SearchAttendanceInputDTOV1,
     SearchAttendanceOutputDTOV1,
     GeoAttendanceInputDTOV1,
+    DeleteAttendanceInputDTOV1,
 )
 from src.models.dtos.attendance.repository.attendance_repository_interface_dtos import (
     CheckOutCommandDTO,
