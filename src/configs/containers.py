@@ -5,20 +5,11 @@ from dependency_injector import containers, providers
 from src.configs.runtime_config import RuntimeConfig
 from src.logics.admin.admin_logic import AdminLogic
 from src.logics.auth.auth_logic import AuthLogic
-from src.logics.file.file_logic import FileLogic
-from src.logics.referral.referral_logic import ReferralLogic
-from src.logics.storage.storage_logic import StorageLogic
 from src.logics.user.user_logic import UserLogic
 from src.repositories.admin.adapters.admin_postgres_adapter import AdminPostgresAdapter
 from src.repositories.admin.admin_repository import AdminRepository
 from src.repositories.auth.adapters.auth_redis_adapter import AuthRedisAdapter
 from src.repositories.auth.auth_repository import AuthRepository
-from src.repositories.file.adapters.file_postgres_adapter import FilePostgresAdapter
-from src.repositories.file.file_repository import FileRepository
-from src.repositories.referral.adapters.referral_postgres_adapter import ReferralPostgresAdapter
-from src.repositories.referral.referral_repository import ReferralRepository
-from src.repositories.storage.adapters.system_storage_adapter import SystemStorageAdapter
-from src.repositories.storage.storage_repository import StorageRepository
 from src.repositories.user.adapters.user_postgres_adapter import UserPostgresAdapter
 from src.repositories.user.user_repository import UserRepository
 
@@ -30,46 +21,6 @@ class ServiceContainer(containers.DeclarativeContainer):
     _redis_adapter: AsyncRedisAdapter = providers.ThreadSafeSingleton(AsyncRedisAdapter)
     # endregion
 
-    # region storage
-    _storage_system_adapter = providers.ThreadSafeSingleton(SystemStorageAdapter, config=_config)
-    _storage_repository = providers.ThreadSafeSingleton(
-        StorageRepository,
-        system_adapter=_storage_system_adapter,
-    )
-    storage_logic = providers.ThreadSafeSingleton(
-        StorageLogic,
-        repository=_storage_repository,
-    )
-    # endregion
-
-    # region file
-    _file_postgres_adapter = providers.ThreadSafeSingleton(FilePostgresAdapter, adapter=_postgres_adapter)
-    _file_repository = providers.ThreadSafeSingleton(
-        FileRepository,
-        postgres_adapter=_file_postgres_adapter,
-    )
-    file_logic = providers.ThreadSafeSingleton(
-        FileLogic,
-        storage_logic=storage_logic,
-        repository=_file_repository,
-    )
-    # endregion
-
-    # region referral
-    _referral_postgres_adapter = providers.ThreadSafeSingleton(
-        ReferralPostgresAdapter,
-        adapter=_postgres_adapter,
-    )
-    _referral_repository = providers.ThreadSafeSingleton(
-        ReferralRepository,
-        postgres_adapter=_referral_postgres_adapter,
-    )
-    referral_logic = providers.ThreadSafeSingleton(
-        ReferralLogic,
-        repository=_referral_repository,
-    )
-    # endregion
-
     # region user
     _user_postgres_adapter = providers.ThreadSafeSingleton(
         UserPostgresAdapter,
@@ -79,7 +30,7 @@ class ServiceContainer(containers.DeclarativeContainer):
         UserRepository,
         postgres_adapter=_user_postgres_adapter,
     )
-    user_logic = providers.ThreadSafeSingleton(UserLogic, repository=_user_repository, referral_logic=referral_logic)
+    user_logic = providers.ThreadSafeSingleton(UserLogic, repository=_user_repository)
     # endregion
 
     # region auth
@@ -95,7 +46,6 @@ class ServiceContainer(containers.DeclarativeContainer):
         AuthLogic,
         repository=_auth_repository,
         user_logic=user_logic,
-        referral_logic=referral_logic,
     )
     # endregion
 

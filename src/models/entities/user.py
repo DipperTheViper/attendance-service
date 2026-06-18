@@ -28,16 +28,5 @@ class UserEntity(UpdatableDeletableEntity):
     user_status: Mapped[str] = mapped_column(VARCHAR(20), nullable=False, default="ACTIVE")
     gender_type: Mapped[Optional[str]] = mapped_column(VARCHAR(30), nullable=True)
 
-    # Relationships
-    referrals_given = relationship(
-        "ReferralEntity",
-        foreign_keys="[ReferralEntity.referer_uuid]",
-        back_populates="referer",
-    )
-    referrals_received = relationship(
-        "ReferralEntity",
-        foreign_keys="[ReferralEntity.referee_uuid]",
-        back_populates="referee",
-    )
     created_files = relationship("FileEntity", foreign_keys="[FileEntity.created_by]")
     updated_files = relationship("FileEntity", foreign_keys="[FileEntity.updated_by]")
