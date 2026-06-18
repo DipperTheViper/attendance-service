@@ -1,12 +1,13 @@
 from src.models.dtos.user.repository.user_repository_interface_dtos import (
     CreateUserCommandDTO,
     CreateUserResponseDTO,
+    DeleteUserCommandDTO,
+    GetUserByUsernameQueryDTO,
     GetUserQueryDTO,
     GetUserResponseDTO,
-    UpdateUserCommandDTO,
-    DeleteUserCommandDTO,
     SearchUserQueryDTO,
     SearchUserResponseDTO,
+    UpdateUserCommandDTO,
 )
 from src.repositories.user.adapters.user_postgres_adapter import UserPostgresAdapter
 
@@ -20,6 +21,9 @@ class UserRepository:
 
     async def get_user(self, input_dto: GetUserQueryDTO) -> GetUserResponseDTO:
         return await self._postgres_adapter.get_user(input_dto=input_dto)
+
+    async def get_user_by_username(self, input_dto: GetUserByUsernameQueryDTO) -> GetUserResponseDTO:
+        return await self._postgres_adapter.get_user_by_username(input_dto=input_dto)
 
     async def search_users(self, input_dto: SearchUserQueryDTO) -> SearchUserResponseDTO:
         return await self._postgres_adapter.search_users(input_dto=input_dto)

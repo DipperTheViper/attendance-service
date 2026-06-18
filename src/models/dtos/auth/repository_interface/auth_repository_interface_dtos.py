@@ -1,22 +1,20 @@
-from datetime import datetime
-
 from archipy.models.dtos.base_dtos import BaseDTO
-from pydantic import StrictBool, StrictStr
+from pydantic import StrictStr
+from uuid import UUID
 
 
-class CreateTOTPCommandDTO(BaseDTO):
-    totp_code: StrictStr
-    nonce_code: StrictStr
-    phone_number: StrictStr
-    is_expire: StrictBool = False
-    expire_time: datetime
+class CreateSessionCommandDTO(BaseDTO):
+    user_uuid: UUID
+    access_token: StrictStr
 
 
-class CreateTOTPResponseDTO(BaseDTO):
-    nonce_code: StrictStr
+class DeleteSessionCommandDTO(BaseDTO):
+    access_token: StrictStr
 
 
-class VerifyTOTPCommandDTO(BaseDTO):
-    phone_number: StrictStr
-    totp_code: StrictStr
-    nonce_code: StrictStr
+class GetSessionQueryDTO(BaseDTO):
+    access_token: StrictStr
+
+
+class GetSessionResponseDTO(BaseDTO):
+    user_uuid: UUID

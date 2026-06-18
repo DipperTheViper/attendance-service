@@ -1,48 +1,19 @@
-from datetime import datetime
+from uuid import UUID
 
 from archipy.models.dtos.base_dtos import BaseDTO
-from pydantic import StrictStr, field_validator
-
-from src.utils.utils import Utils
+from pydantic import StrictStr
 
 
-class CreateTOTPInputDTOV1(BaseDTO):
+class RegisterInputDTOV1(BaseDTO):
+    username: StrictStr
+    password: StrictStr
     phone_number: StrictStr
-    referral_code: StrictStr | None = None
-
-    @field_validator("phone_number")
-    def validate_phone_number(cls, v):
-        Utils.validate_iranian_phone_number(v)
-        return v
+    first_name: StrictStr | None = None
+    last_name: StrictStr | None = None
 
 
-class CreateTOTPOutputDTOV1(BaseDTO):
-    expires_in: datetime
-    phone_number: StrictStr
-    nonce_code: StrictStr
-
-
-class VerifyTOTPInputDTOV1(BaseDTO):
-    totp_code: StrictStr
-    phone_number: StrictStr
-    nonce_code: StrictStr
-
-    @field_validator("phone_number")
-    def validate_phone_number(cls, v):
-        Utils.validate_iranian_phone_number(v)
-        return v
-
-
-class VerifyTOTPOutputDTOV1(BaseDTO):
-    access_token: StrictStr
-    refresh_token: StrictStr
-
-
-class RefreshTokenInputDTOV1(BaseDTO):
-    refresh_token: StrictStr
-
-
-class RefreshTokenOutputDTOV1(BaseDTO):
+class RegisterOutputDTOV1(BaseDTO):
+    user_uuid: UUID
     access_token: StrictStr
 
 
@@ -52,5 +23,9 @@ class LoginInputDTOV1(BaseDTO):
 
 
 class LoginOutputDTOV1(BaseDTO):
+    user_uuid: UUID
     access_token: StrictStr
-    refresh_token: StrictStr
+
+
+class LogoutInputDTOV1(BaseDTO):
+    access_token: StrictStr

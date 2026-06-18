@@ -1,12 +1,10 @@
 from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
-from datetime import datetime, date, time
-from decimal import Decimal
 from pydantic import StrictStr
 from uuid import UUID
 
-from src.models.types.enums import *
+from src.models.types.enums import UserType
 
 
 class CreateUserCommandDTO(BaseDTO):
@@ -15,7 +13,7 @@ class CreateUserCommandDTO(BaseDTO):
     phone_number: StrictStr
     first_name: StrictStr | None = None
     last_name: StrictStr | None = None
-    user_type: StrictStr
+    user_type: UserType = UserType.USER
 
 
 class CreateUserResponseDTO(BaseDTO):
@@ -26,6 +24,10 @@ class GetUserQueryDTO(BaseDTO):
     user_uuid: UUID
 
 
+class GetUserByUsernameQueryDTO(BaseDTO):
+    username: StrictStr
+
+
 class GetUserResponseDTO(BaseDTO):
     user_uuid: UUID
     username: StrictStr
@@ -33,17 +35,14 @@ class GetUserResponseDTO(BaseDTO):
     phone_number: StrictStr
     first_name: StrictStr | None = None
     last_name: StrictStr | None = None
-    user_type: StrictStr
+    user_type: UserType
 
 
 class UpdateUserCommandDTO(BaseDTO):
     user_uuid: UUID
-    username: StrictStr | None = None
-    hashed_password: StrictStr | None = None
     phone_number: StrictStr | None = None
     first_name: StrictStr | None = None
     last_name: StrictStr | None = None
-    user_type: StrictStr | None = None
 
 
 class DeleteUserCommandDTO(BaseDTO):
@@ -51,7 +50,8 @@ class DeleteUserCommandDTO(BaseDTO):
 
 
 class SearchUserQueryDTO(BaseDTO):
-    # TODO: Add search fields as needed
+    user_type: UserType | None = None
+    phone_number: StrictStr | None = None
     pagination: PaginationDTO
     sort_info: SortDTO[str]
 

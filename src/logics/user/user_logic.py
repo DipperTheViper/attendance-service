@@ -1,34 +1,33 @@
 from archipy.helpers.decorators.sqlalchemy_atomic import async_postgres_sqlalchemy_atomic_decorator
-from uuid import UUID
 
 from src.models.dtos.user.domain.v1.user_domain_interface_dtos import (
     CreateUserInputDTOV1,
     CreateUserOutputDTOV1,
+    DeleteUserInputDTOV1,
+    GetUserByUsernameInputDTOV1,
     GetUserInputDTOV1,
     GetUserOutputDTOV1,
-    UpdateUserInputDTOV1,
-    DeleteUserInputDTOV1,
     SearchUserInputDTOV1,
     SearchUserOutputDTOV1,
+    UpdateUserInputDTOV1,
+    GetUserByUsernameOutputDTOV1,
 )
 from src.models.dtos.user.repository.user_repository_interface_dtos import (
     CreateUserCommandDTO,
     CreateUserResponseDTO,
+    DeleteUserCommandDTO,
+    GetUserByUsernameQueryDTO,
     GetUserQueryDTO,
     GetUserResponseDTO,
-    UpdateUserCommandDTO,
-    DeleteUserCommandDTO,
     SearchUserQueryDTO,
     SearchUserResponseDTO,
+    UpdateUserCommandDTO,
 )
 from src.repositories.user.user_repository import UserRepository
 
 
 class UserLogic:
-    def __init__(
-        self,
-        repository: UserRepository,
-    ) -> None:
+    def __init__(self, repository: UserRepository) -> None:
         self._repository: UserRepository = repository
 
     @async_postgres_sqlalchemy_atomic_decorator
@@ -42,6 +41,12 @@ class UserLogic:
         query = GetUserQueryDTO.model_validate(obj=input_dto)
         response: GetUserResponseDTO = await self._repository.get_user(input_dto=query)
         return GetUserOutputDTOV1.model_validate(obj=response)
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def get_user_by_username(self, input_dto: GetUserByUsernameInputDTOV1) -> GetUserByUsernameOutputDTOV1:
+        query = GetUserByUsernameQueryDTO.model_validate(obj=input_dto)
+        response: GetUserResponseDTO = await self._repository.get_user_by_username(input_dto=query)
+        return GetUserByUsernameOutputDTOV1.model_validate(obj=response)
 
     @async_postgres_sqlalchemy_atomic_decorator
     async def search_users(self, input_dto: SearchUserInputDTOV1) -> SearchUserOutputDTOV1:

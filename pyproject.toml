@@ -1,8 +1,8 @@
 [project]
-name = "mpm13-backend-service"
+name = "attendance-service"
 version = "0.1.0"
-description = "MPM Backend service"
-authors = [{name="Ali Fazeli",email="afazeli0114@gmail.com"}]
+description = "Attendance service"
+authors = [{name="Mahdi Kafash Kohan",email="mahdikafashkohan@gmail.com"}]
 readme = "README.md"
 
 requires-python = ">=3.14,<4"
@@ -10,6 +10,8 @@ dependencies = [
     "archipy[fastapi, sqlalchemy, postgres, dependency-injection, jwt, cache, redis]>=3.16.0b,<4.0.0",
     "alembic>=1.17.1,<2.0.0",
     "psycopg2-binary>=2.9.11,<3.0.0",
+    "cryptography",
+    "bcrypt",
 ]
 
 [tool.pytest.ini_options]

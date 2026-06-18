@@ -21,7 +21,7 @@ DB_USER = os.getenv("POSTGRES_SQLALCHEMY__USERNAME", "postgres")
 DB_PASSWORD = os.getenv("POSTGRES_SQLALCHEMY__PASSWORD", "postgres")
 DB_HOST = os.getenv("POSTGRES_SQLALCHEMY__HOST", "localhost")
 DB_PORT = os.getenv("POSTGRES_SQLALCHEMY__PORT", "5432")
-DB_NAME = os.getenv("POSTGRES_SQLALCHEMY__DATABASE", "yoop-db-v1")
+DB_NAME = os.getenv("POSTGRES_SQLALCHEMY__DATABASE", "attendance")
 
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
