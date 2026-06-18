@@ -1,0 +1,150 @@
+stages:
+  - deploy
+
+variables:
+  # These should be set in GitLab CI/CD Variables:
+  # - PRIVATE_KEY: SSH private key
+  # - SERVER_ADDRESS: VPS server address (e.g., example.com or IP)
+  # - SERVER_USERNAME: SSH username
+  # - SERVER_PATH: Path on server where files should be deployed
+  DOCKER_IMAGE_NAME: "${CI_PROJECT_NAME}"
+  RELEASE_VERSION: "${CI_COMMIT_TAG}"
+
+deploy:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  timeout: 30 minutes
+  only:
+    - tags
+    # Only trigger on tags matching semantic versioning pattern
+    - /^v?\d+\.\d+\.\d+$/
+  before_script:
+    - set -x  # Enable verbose logging
+    - echo "=========================================="
+    - echo "Starting deployment process"
+    - echo "Project: ${CI_PROJECT_NAME}"
+    - echo "Version: ${RELEASE_VERSION}"
+    - echo "Commit: ${CI_COMMIT_SHA}"
+    - echo "=========================================="
+    # Setup SSH
+    - echo "Setting up SSH connection..."
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H "$SERVER_ADDRESS" >> ~/.ssh/known_hosts
+    - echo "SSH setup completed"
+  script:
+    # Test server connection
+    - echo "Testing server connection..."
+    - ssh -o ConnectTimeout=10 -v "$SERVER_USERNAME@$SERVER_ADDRESS" echo "Connection successful" || (echo "Connection failed!" && exit 1)
+    - echo "Server connection verified"
+
+    # Build Docker image
+    - echo "Building Docker image..."
+    - docker build -t "${DOCKER_IMAGE_NAME}:${RELEASE_VERSION}" .
+    - echo "Docker image built successfully: ${DOCKER_IMAGE_NAME}:${RELEASE_VERSION}"
+
+    # Transfer Docker image with compression
+    - echo "Transferring Docker image with compression..."
+    - docker save "${DOCKER_IMAGE_NAME}:${RELEASE_VERSION}" | gzip -c | ssh -o ConnectTimeout=30 -v "$SERVER_USERNAME@$SERVER_ADDRESS" "gunzip -c | docker load"
+    - echo "Docker image transferred successfully"
+
+    # Update docker-compose.yml locally with version
+    - echo "Updating docker-compose.yml with version ${RELEASE_VERSION}..."
+    - sed -i "s|IMAGE_VERSION|${RELEASE_VERSION}|g" docker-compose.yml
+    - echo "docker-compose.yml updated"
+
+    # Transfer Docker Compose file and nginx config to remote server
+    - echo "Transferring configuration files to server..."
+    - ssh -o ConnectTimeout=10 "$SERVER_USERNAME@$SERVER_ADDRESS" "mkdir -p $SERVER_PATH"
+    - scp -o StrictHostKeyChecking=no -v nginx.conf.template "$SERVER_USERNAME@$SERVER_ADDRESS:$SERVER_PATH/"
+    - scp -o StrictHostKeyChecking=no -v docker-compose.yml "$SERVER_USERNAME@$SERVER_ADDRESS:$SERVER_PATH/"
+    - echo "Configuration files transferred successfully"
+
+    # Deploy application
+    - echo "Deploying application..."
+    - |
+      ssh -o ConnectTimeout=30 -v "$SERVER_USERNAME@$SERVER_ADDRESS" << 'ENDSSH'
+      set -e
+      set -x  # Enable verbose logging
+
+      echo "=========================================="
+      echo "Starting deployment on server"
+      echo "=========================================="
+
+      # Check and create nginx_net network if needed
+      echo "Checking nginx_net network..."
+      if ! docker network ls | grep -q "nginx_net"; then
+        echo "Creating nginx_net network..."
+        docker network create nginx_net
+        echo "nginx_net network created"
+      else
+        echo "nginx_net network already exists"
+      fi
+
+      # Deploy with better error handling
+      echo "Changing to deployment directory: $SERVER_PATH"
+      cd "$SERVER_PATH"
+
+      echo "Stopping existing containers..."
+      docker compose down --timeout 30 || echo "No containers to stop"
+
+      echo "Starting new containers..."
+      docker compose up -d
+
+      echo "Restarting nginx..."
+      docker restart nginx || echo "Nginx restart failed, continuing..."
+
+      echo "Verifying deployment..."
+      docker compose ps
+
+      echo "=========================================="
+      echo "Deployment completed successfully!"
+      echo "=========================================="
+      ENDSSH
+
+    # Health check
+    - echo "Performing health check..."
+    - |
+      ssh -v "$SERVER_USERNAME@$SERVER_ADDRESS" << 'ENDSSH'
+      set -e
+      set -x
+
+      echo "Waiting for containers to start..."
+      sleep 10
+
+      echo "Checking container status..."
+      if docker compose -f "$SERVER_PATH/docker-compose.yml" ps | grep -q "Up"; then
+        echo "✅ Health check passed - containers are running"
+        docker compose -f "$SERVER_PATH/docker-compose.yml" ps
+      else
+        echo "❌ Health check failed - some containers may not be running"
+        docker compose -f "$SERVER_PATH/docker-compose.yml" ps
+        exit 1
+      fi
+      ENDSSH
+
+    # Cleanup old images
+    - echo "Cleaning up old Docker images..."
+    - |
+      ssh -v "$SERVER_USERNAME@$SERVER_ADDRESS" << 'ENDSSH'
+      echo "Cleaning up old Docker images..."
+      docker image prune -f --filter "until=24h" || echo "No images to clean up"
+      echo "Cleanup completed"
+      ENDSSH
+
+    # Deployment summary
+    - echo "=========================================="
+    - echo "🎉 Deployment completed successfully!"
+    - echo "Version: ${RELEASE_VERSION}"
+    - echo "Repository: ${CI_PROJECT_NAME}"
+    - echo "=========================================="
+  after_script:
+    # Cleanup SSH key (always run)
+    - echo "Cleaning up SSH key..."
+    - rm -f ~/.ssh/id_rsa
+    - echo "SSH key cleaned up"
+  when: on_success

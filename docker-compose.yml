@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  mpm13-backend:
+    image: docker.io/library/mpm13-backend:IMAGE_VERSION
+    container_name: mpm13-backend
+    env_file:
+      - variables.env
+    command: uv run python -m manage
+    networks:
+      - nginx_net
+    ports:
+      - "8966:8100"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - /home/alex/object-storage/media:/app/media
+
+  mpm13-object-storage-nginx:
+    container_name: mpm13-object-storage-nginx
+    image: nginx:1.27-alpine
+    restart: always
+    env_file:
+      - variables.env
+    networks:
+      - nginx_net
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/nginx.conf.template
+      - /home/alex/object-storage/media:/app/media:ro
+    entrypoint: /bin/sh -c "envsubst '$$FILE__SECRET_KEY' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  nginx_net:
+    external: true

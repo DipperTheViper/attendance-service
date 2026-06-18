@@ -1,0 +1,133 @@
+`@startuml
+
+Skinparam backgroundColor #1E1E1E
+skinparam linetype ortho
+skinparam handwritten false
+skinparam classFontSize 16
+skinparam classFontName Arial
+skinparam classAttributeFontSize 14
+
+Skinparam class {
+    BackgroundColor #2B2B2B
+    BorderColor #404040
+    ArrowColor #B0C4DE
+    FontColor #FFFFFF
+    AttributeFontColor #D3D3D3
+    StereotypeFontColor #A9A9A9
+}
+
+skinparam relationship {
+    Color #ADD8E6
+    LineColor #ADD8E6
+    FontColor #E8E8E8
+    TextColor #E8E8E8
+    MessageColor #E8E8E8
+}
+
+skinparam arrow {
+    Color #ADD8E6
+    FontColor #E8E8E8
+    Thickness 1.5
+}
+
+skinparam note {
+    BackgroundColor #2B2B2B
+    BorderColor #404040
+    FontColor #D3D3D3
+}
+
+!function $fk($a) return "<color:#4DC9FF>" + $a + "</color>"
+!function $fk_nullable($a) return "<color:#FF9ECD>" + $a + "</color>"
+!function $fk_unique($a) return "<color:#00FFFF>" + $a + "</color>"
+!function $nullable($a) return "<color:#FF79C6>" + $a + "</color>"
+!function $pk($a) return "<color:#FF5555>" + $a + "</color>"
+!function $type($field_name, $enum_type) return "<color:#FFB86C>" + $field_name + " : " + $enum_type + "</color>"
+!function $type_nullable($field_name, $enum_type) return "<color:#50FA7B>" + $field_name + " : " + $enum_type + "</color>"
+!function $unique($a) return "<color:#F8F8F2>" + $a + "</color>"
+!function $unique_nullable($a) return "<color:#FFD700>" + $a + "</color>"
+!function $field($a) return "<color:#FFFFFF>" + $a + "</color>"
+
+' Functions for class-based relationships (--)
+!function $loose_relation()
+    !return "----[thickness=1]"
+!endfunction
+
+!function $moderate_relation()
+    !return "---[thickness=2]"
+!endfunction
+
+!function $strong_relation()
+    !return "--[thickness=3]"
+!endfunction
+
+' Function for type-based relationships (-->)
+!function $type_relation()
+    !return "--[thickness=1]>"
+!endfunction
+
+note as ColorLegend
+Colors:
+  Foreign Key Unique: $fk_unique("darkblue")
+  Foreign Key: $fk("blue")
+  Foreign Nullable Key: $fk_nullable("purple")
+  Nullable: $nullable("mediumvioletred")
+  Primary Key: $pk("red")
+  Type Nullable: $type_nullable("field", "Enum")
+  Type: $type("field", "Enum")
+  Unique: $unique("gray")
+end note
+
+enum GenderType {
+    MALE
+    FEMALE
+    OTHER
+    PREFER_NOT_TO_SAY
+}
+
+enum UserType {
+    USER
+    ADMIN
+
+}
+
+enum UserStatusType {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+    DELETED
+    PENDING_VERIFICATION
+}
+
+entity UserEntity {
+    $pk("user_uuid : uuid")
+
+    $nullable("first_name : string")
+    $nullable("last_name : string")
+    $nullable("email : string")
+    $unique_nullable("phone_number : string")
+
+    $type("user_type", UserType) : default(USER)
+    $type("user_status", UserStatusType) : default(ACTIVE)
+    $type_nullable("gender_type", GenderType)
+
+
+    $nullable("username : string")
+    $nullable("hashed_password : string")
+    $nullable("profile_picture_url : string")
+
+
+    $field("created_at : datetime")
+    $field("updated_at : datetime")
+}
+
+
+' Relationships
+UserEntity $moderate_relation() UserInterestEntity
+
+
+GenderType $type_relation() UserEntity : gender_type
+UserType $type_relation() UserEntity : user_type
+UserStatusType $type_relation() UserEntity : user_status
+VerificationStatusType $type_relation() UserEntity : verification_status
+
+@enduml
