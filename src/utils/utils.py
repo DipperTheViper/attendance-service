@@ -13,3 +13,7 @@ class Utils(BaseUtils):
         if hasattr(key, "get_secret_value"):
             key = key.get_secret_value()
         return hmac.new(key.encode(), value.encode(), hashlib.sha256).hexdigest()
+
+    @classmethod
+    def make_point_wkt(cls, latitude: float, longitude: float) -> str:
+        return f"SRID=4326;POINT({longitude} {latitude})"

@@ -13,6 +13,7 @@ dependencies = [
     "cryptography",
     "bcrypt",
     "geoalchemy2>=0.20.0",
+    "shapely>=2.1.2",
 ]
 
 [tool.pytest.ini_options]

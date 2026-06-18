@@ -1,101 +1,99 @@
 from archipy.models.dtos.base_dtos import BaseDTO
+from pydantic import StrictStr
+from archipy.models.dtos.base_dtos import BaseDTO
 from archipy.models.dtos.pagination_dto import PaginationDTO
 from archipy.models.dtos.sort_dto import SortDTO
 from archipy.models.types.sort_order_type import SortOrderType
-from datetime import datetime, date, time
-from decimal import Decimal
-from pydantic import StrictStr
+from datetime import datetime
 from uuid import UUID
 
-from src.models.types.enums import *
+from src.models.types.enums import AttendanceMethodType
 
 
-class CreateAttendanceRecordRestInputDTOV1(BaseDTO):
+class CheckInInputDTOV1(BaseDTO):
     user_uuid: UUID
-    check_in_at: datetime
-    check_out_at: datetime | None = None
-    method: StrictStr
-    latitude: float | None = None
-    longitude: float | None = None
 
 
-class CreateAttendanceRecordInputDTOV1(CreateAttendanceRecordRestInputDTOV1):
+class CheckOutInputDTOV1(BaseDTO):
+    user_uuid: UUID
+
+
+class GeoCheckInInputRestDTOV1(BaseDTO):
+    latitude: float
+    longitude: float
+
+
+class GeoCheckInInputDTOV1(GeoCheckInInputRestDTOV1):
     user_uuid: UUID | None = None
 
     @classmethod
     def create(
         cls,
         user_uuid: UUID | None = None,
-        input_dto: CreateAttendanceRecordRestInputDTOV1 = None,
+        input_dto: GeoCheckInInputRestDTOV1 = None,
     ):
         if input_dto:
             return cls(user_uuid=user_uuid, **input_dto.model_dump(mode="json"))
         return cls(user_uuid=user_uuid)
 
 
-class CreateAttendanceRecordOutputDTOV1(BaseDTO):
-    attendance_uuid: UUID
+class GeoCheckOutInputRestDTOV1(BaseDTO):
+    latitude: float
+    longitude: float
 
 
-class GetAttendanceRecordInputDTOV1(BaseDTO):
-    attendance_uuid: UUID
+class GeoCheckOutInputDTOV1(GeoCheckOutInputRestDTOV1):
+    user_uuid: UUID | None = None
+
+    @classmethod
+    def create(
+        cls,
+        user_uuid: UUID | None = None,
+        input_dto: GeoCheckOutInputRestDTOV1 = None,
+    ):
+        if input_dto:
+            return cls(user_uuid=user_uuid, **input_dto.model_dump(mode="json"))
+        return cls(user_uuid=user_uuid)
 
 
-class GetAttendanceRecordOutputDTOV1(BaseDTO):
+class AttendanceOutputDTOV1(BaseDTO):
     attendance_uuid: UUID
     user_uuid: UUID
     check_in_at: datetime
     check_out_at: datetime | None = None
-    method: StrictStr
-    latitude: float | None = None
-    longitude: float | None = None
+    method: AttendanceMethodType
+    location: StrictStr | None = None
 
 
-class UpdateAttendanceRecordRestInputDTOV1(BaseDTO):
+class SearchAttendanceInputDTOV1(BaseDTO):
     user_uuid: UUID | None = None
-    check_in_at: datetime | None = None
-    check_out_at: datetime | None = None
-    method: StrictStr | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-
-
-class UpdateAttendanceRecordInputDTOV1(UpdateAttendanceRecordRestInputDTOV1):
-    attendance_uuid: UUID
-
-
-class DeleteAttendanceRecordInputDTOV1(BaseDTO):
-    attendance_uuid: UUID
-
-
-class SearchAttendanceRecordInputDTOV1(BaseDTO):
-    # TODO: Add search fields as needed
+    date_from: datetime | None = None
+    date_to: datetime | None = None
     pagination: PaginationDTO
-    sort_info: SortDTO[str]  # Replace with appropriate sort enum
+    sort_info: SortDTO[str]
 
     @classmethod
     def create(
         cls,
         page: int = 1,
         page_size: int = 10,
-        sort_column: str = "created_at",
+        sort_column: str = "check_in_at",
         sort_order: SortOrderType = SortOrderType.DESCENDING,
+        user_uuid: UUID | None = None,
+        date_from: datetime | None = None,
+        date_to: datetime | None = None,
     ):
         pagination = PaginationDTO(page=page, page_size=page_size)
         sort_info = SortDTO[str](column=sort_column, order=sort_order)
-        return cls(pagination=pagination, sort_info=sort_info)
+        return cls(
+            pagination=pagination,
+            sort_info=sort_info,
+            user_uuid=user_uuid,
+            date_from=date_from,
+            date_to=date_to,
+        )
 
 
-class AttendanceRecordItemDTOV1(BaseDTO):
-    attendance_uuid: UUID
-    user_uuid: UUID
-    check_in_at: datetime
-    check_out_at: datetime | None = None
-    method: StrictStr
-    latitude: float | None = None
-    longitude: float | None = None
-
-
-class SearchAttendanceRecordOutputDTOV1(BaseDTO):
-    attendance_records: list[AttendanceRecordItemDTOV1]
+class SearchAttendanceOutputDTOV1(BaseDTO):
+    records: list[AttendanceOutputDTOV1]
     total: int
