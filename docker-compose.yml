@@ -1,42 +1,63 @@
-version: '3'
-
 services:
-  mpm13-backend:
-    image: docker.io/library/mpm13-backend:IMAGE_VERSION
-    container_name: mpm13-backend
+  attendance-service:
+    build: .
+    container_name: attendance-service
     env_file:
-      - variables.env
-    command: uv run python -m manage
-    networks:
-      - nginx_net
+      - .env
     ports:
-      - "8966:8100"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    volumes:
-      - /home/alex/object-storage/media:/app/media
-
-  mpm13-object-storage-nginx:
-    container_name: mpm13-object-storage-nginx
-    image: nginx:1.27-alpine
-    restart: always
-    env_file:
-      - variables.env
+      - "8100:8100"
+    depends_on:
+      - postgres
+      - redis
     networks:
-      - nginx_net
-    volumes:
-      - ./nginx.conf.template:/etc/nginx/nginx.conf.template
-      - /home/alex/object-storage/media:/app/media:ro
-    entrypoint: /bin/sh -c "envsubst '$$FILE__SECRET_KEY' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+      - attendance_net
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+  celery-worker:
+    build: .
+    container_name: attendance-celery
+    env_file:
+      - .env
+    command: uv run celery -A src.configs.celery_config.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - attendance_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: attendance-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: attendance
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - attendance_net
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: attendance-redis
+    networks:
+      - attendance_net
+    ports:
+      - "6379:6379"
 
 networks:
-  nginx_net:
-    external: true
+  attendance_net:
+
+volumes:
+  postgres_data:

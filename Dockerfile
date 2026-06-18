@@ -1,11 +1,7 @@
+FROM ghcr.io/astral-sh/uv:python3.14-alpine
 
-FROM astral/uv:python3.14-alpine
-#FROM docker.arvancloud.ir/astral/uv:python3.13-alpine
-
-
-WORKDIR /src
+WORKDIR /app
 COPY . .
-COPY pyproject.toml uv.lock* ./
 RUN uv sync --frozen --no-dev
 
 EXPOSE 8100
