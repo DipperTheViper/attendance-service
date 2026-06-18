@@ -1,4 +1,4 @@
-`@startuml
+@startuml
 
 Skinparam backgroundColor #1E1E1E
 skinparam linetype ortho
@@ -47,7 +47,6 @@ skinparam note {
 !function $unique_nullable($a) return "<color:#FFD700>" + $a + "</color>"
 !function $field($a) return "<color:#FFFFFF>" + $a + "</color>"
 
-' Functions for class-based relationships (--)
 !function $loose_relation()
     !return "----[thickness=1]"
 !endfunction
@@ -60,7 +59,6 @@ skinparam note {
     !return "--[thickness=3]"
 !endfunction
 
-' Function for type-based relationships (-->)
 !function $type_relation()
     !return "--[thickness=1]>"
 !endfunction
@@ -77,57 +75,53 @@ Colors:
   Unique: $unique("gray")
 end note
 
-enum GenderType {
-    MALE
-    FEMALE
-    OTHER
-    PREFER_NOT_TO_SAY
-}
-
-enum UserType {
-    USER
+enum RoleType {
     ADMIN
-
+    EMPLOYEE
 }
 
-enum UserStatusType {
-    ACTIVE
-    INACTIVE
-    SUSPENDED
-    DELETED
-    PENDING_VERIFICATION
+enum AttendanceMethodType {
+    MANUAL
+    GEO
 }
 
 entity UserEntity {
     $pk("user_uuid : uuid")
 
+    $unique("encrypted_username : string")
+    $field("hashed_password : string")
+    $unique("phone_number : string")
     $nullable("first_name : string")
     $nullable("last_name : string")
-    $nullable("email : string")
-    $unique_nullable("phone_number : string")
 
-    $type("user_type", UserType) : default(USER)
-    $type("user_status", UserStatusType) : default(ACTIVE)
-    $type_nullable("gender_type", GenderType)
-
-
-    $nullable("username : string")
-    $nullable("hashed_password : string")
-    $nullable("profile_picture_url : string")
-
+    $type("role", RoleType) : default(EMPLOYEE)
 
     $field("created_at : datetime")
     $field("updated_at : datetime")
+    $field("deleted_at : datetime")
+    $field("is_deleted : boolean")
 }
 
+entity AttendanceRecordEntity {
+    $pk("attendance_uuid : uuid")
+
+    $fk("user_uuid : uuid")
+
+    $field("check_in_at : datetime")
+    $fk_nullable("check_out_at : datetime")
+
+    $type("method", AttendanceMethodType)
+
+    $field("created_at : datetime")
+    $field("updated_at : datetime")
+    $field("deleted_at : datetime")
+    $field("is_deleted : boolean")
+}
 
 ' Relationships
-UserEntity $moderate_relation() UserInterestEntity
+UserEntity $strong_relation() AttendanceRecordEntity : "1 to many"
 
-
-GenderType $type_relation() UserEntity : gender_type
-UserType $type_relation() UserEntity : user_type
-UserStatusType $type_relation() UserEntity : user_status
-VerificationStatusType $type_relation() UserEntity : verification_status
+RoleType $type_relation() UserEntity : role
+AttendanceMethodType $type_relation() AttendanceRecordEntity : method
 
 @enduml
