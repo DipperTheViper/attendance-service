@@ -116,3 +116,7 @@ class SearchAttendanceInputDTOV1(BaseDTO):
 class SearchAttendanceOutputDTOV1(BaseDTO):
     records: list[AttendanceOutputDTOV1]
     total: int
+
+
+class DeleteAttendanceInputDTOV1(BaseDTO):
+    attendance_uuid: UUID

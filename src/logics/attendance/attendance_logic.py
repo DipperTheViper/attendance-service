@@ -17,6 +17,7 @@ from src.models.dtos.attendance.repository.attendance_repository_interface_dtos 
     CreateAttendanceRecordCommandDTO,
     GetOpenAttendanceQueryDTO,
     SearchAttendanceRecordQueryDTO,
+    DeleteAttendanceRecordCommandDTO,
 )
 from src.models.exceptions.attendance import (
     AlreadyCheckedInError,
@@ -142,3 +143,8 @@ class AttendanceLogic:
         repository_dto = SearchAttendanceRecordQueryDTO.model_validate(input_dto)
         response = await self._repository.search_attendance_records(input_dto=repository_dto)
         return SearchAttendanceOutputDTOV1.model_validate(response)
+
+    @async_postgres_sqlalchemy_atomic_decorator
+    async def delete_attendance_record(self, input_dto: DeleteAttendanceInputDTOV1) -> None:
+        command = DeleteAttendanceRecordCommandDTO(attendance_uuid=input_dto.attendance_uuid)
+        await self._repository.delete_attendance_record(input_dto=command)

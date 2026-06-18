@@ -6,6 +6,7 @@ from src.models.dtos.attendance.repository.attendance_repository_interface_dtos 
     GetOpenAttendanceResponseDTO,
     SearchAttendanceRecordQueryDTO,
     SearchAttendanceRecordResponseDTO,
+    DeleteAttendanceRecordCommandDTO,
 )
 from src.repositories.attendance.adapters.attendance_postgres_adapter import AttendancePostgresAdapter
 
@@ -34,3 +35,6 @@ class AttendanceRepository:
         input_dto: SearchAttendanceRecordQueryDTO,
     ) -> SearchAttendanceRecordResponseDTO:
         return await self._postgres_adapter.search_attendance_records(input_dto=input_dto)
+
+    async def delete_attendance_record(self, input_dto: DeleteAttendanceRecordCommandDTO) -> None:
+        await self._postgres_adapter.delete_attendance_record(input_dto=input_dto)

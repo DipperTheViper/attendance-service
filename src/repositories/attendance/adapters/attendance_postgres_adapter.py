@@ -18,6 +18,7 @@ from src.models.dtos.attendance.repository.attendance_repository_interface_dtos 
     SearchAttendanceRecordQueryDTO,
     SearchAttendanceRecordResponseDTO,
     AttendanceRecordResponseDTO,
+    DeleteAttendanceRecordCommandDTO,
 )
 from src.models.entities import AttendanceRecordEntity
 
@@ -138,3 +139,16 @@ class AttendancePostgresAdapter(SQLAlchemyFilterMixin):
             )
 
         return SearchAttendanceRecordResponseDTO(records=records, total=total)
+
+    async def delete_attendance_record(self, input_dto: DeleteAttendanceRecordCommandDTO) -> None:
+        delete_query = (
+            update(AttendanceRecordEntity)
+            .where(
+                AttendanceRecordEntity.attendance_uuid == input_dto.attendance_uuid,
+                AttendanceRecordEntity.is_deleted.is_(False),
+            )
+            .values(is_deleted=True)
+        )
+        result = await self._adapter.execute(statement=delete_query)
+        if result.rowcount == 0:
+            raise NotFoundError(resource_type=AttendanceRecordEntity.__name__)

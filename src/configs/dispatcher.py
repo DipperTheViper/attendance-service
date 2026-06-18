@@ -49,3 +49,10 @@ def set_admin_dispatch_routes(app: FastAPI) -> None:
     )
 
     dependencies = [Depends(admin_authenticator)]
+
+    app.include_router(
+        router=attendance_service.adminRouterV1,
+        prefix="/api/v1/admin",
+        dependencies=dependencies,
+        responses=common_private_response,
+    )

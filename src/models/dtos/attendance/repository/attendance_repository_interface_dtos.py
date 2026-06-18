@@ -54,3 +54,7 @@ class AttendanceRecordResponseDTO(BaseDTO):
 class SearchAttendanceRecordResponseDTO(BaseDTO):
     records: list[AttendanceRecordResponseDTO]
     total: int
+
+
+class DeleteAttendanceRecordCommandDTO(BaseDTO):
+    attendance_uuid: UUID

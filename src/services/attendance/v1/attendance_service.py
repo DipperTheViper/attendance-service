@@ -19,6 +19,7 @@ from src.models.dtos.attendance.domain.v1.attendance_domain_interface_dtos impor
 )
 from src.models.types.api_router_type import ApiRouterType
 
+adminRouterV1: APIRouter = APIRouter(tags=[ApiRouterType.ADMIN])
 routerV1: APIRouter = APIRouter(tags=[ApiRouterType.ATTENDANCE])
 
 
@@ -94,3 +95,35 @@ async def search_attendance(
         date_to=date_to,
     )
     return await logic.search_attendance_records(input_dto=input_dto)
+
+
+@adminRouterV1.get(
+    path="/attendance",
+    response_model=SearchAttendanceOutputDTOV1,
+)
+@inject
+async def admin_search_attendance(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=100),
+    date_from: datetime | None = Query(default=None),
+    date_to: datetime | None = Query(default=None),
+    user_uuid: UUID | None = Query(default=None),
+    logic: AttendanceLogic = Depends(Provide[ServiceContainer.attendance_logic]),
+) -> SearchAttendanceOutputDTOV1:
+    input_dto = SearchAttendanceInputDTOV1.create(
+        page=page,
+        page_size=page_size,
+        user_uuid=user_uuid,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    return await logic.search_attendance_records(input_dto=input_dto)
+
+
+@adminRouterV1.delete(path="/attendance/{attendance_uuid}")
+@inject
+async def admin_delete_attendance(
+    attendance_uuid: UUID,
+    logic: AttendanceLogic = Depends(Provide[ServiceContainer.attendance_logic]),
+) -> None:
+    await logic.delete_attendance_record(input_dto=DeleteAttendanceInputDTOV1(attendance_uuid=attendance_uuid))
