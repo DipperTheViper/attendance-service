@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.11,<3.0.0",
     "cryptography",
     "bcrypt",
+    "geoalchemy2>=0.20.0",
 ]
 
 [tool.pytest.ini_options]

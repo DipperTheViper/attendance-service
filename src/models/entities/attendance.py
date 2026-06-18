@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import UUID, VARCHAR
 from sqlalchemy.orm import Mapped, mapped_column, relationship, Synonym
 from sqlalchemy import Enum as SAEnum
 from src.models.types.enums import AttendanceMethodType
+from geoalchemy2 import Geometry
 
 
 class AttendanceRecordEntity(UpdatableDeletableEntity):
@@ -18,7 +19,6 @@ class AttendanceRecordEntity(UpdatableDeletableEntity):
     check_in_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
     check_out_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     method: Mapped[str] = mapped_column(SAEnum(AttendanceMethodType), nullable=False)
-    latitude: Mapped[float] = mapped_column(Float, nullable=True)
-    longitude: Mapped[float] = mapped_column(Float, nullable=True)
+    location: Mapped[object] = mapped_column(Geometry(geometry_type="POINT", srid=4326), nullable=True)
 
     user = relationship("UserEntity", back_populates="attendance_records")
